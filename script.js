@@ -83,7 +83,7 @@ class Defender{
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.fillStyle = 'gold';
         ctx.font = '20px Arial';
-        ctx.fillText(Math.floor(this.health), this.x, this.y);//to give health in whole numbers
+        ctx.fillText(Math.floor(this.health), this.x + 15, this.y + 30);//to give health in whole numbers
 
 
     }
@@ -93,8 +93,13 @@ canvas.addEventListener('click', function(){
 const gridPositonX = mouse.x - (mouse.x % cellSize);
 const gridPositonY = mouse.y - (mouse.y % cellSize);
 if (gridPositonY < cellSize) return;//to ensure you cant add a defender on the top blue spot
+//to avoid placing a defender on top of another
+for (let i = 0; i < defenders.length; i++){
+    if (defenders[i].x === gridPositonX && defenders[i].y === gridPositonY)
+        return;
+}
 let defenderCost = 100;
-if (numberOfResources > defenderCost){
+if (numberOfResources >= defenderCost){
     defenders.push(new Defender(gridPositonX, gridPositonY));
     numberOfResources -= defenderCost;
 }
@@ -108,6 +113,12 @@ function handleDefenders(){
 }
 //enemies
 //utilities
+function handleGameStatus(){
+    ctx.fillStyle = 'gold';
+    ctx.font = '30px Arial';
+    ctx.fillText('Resources: ' + numberOfResources, 20, 55);
+}
+
 
 function animate() { //recursion to redraw the animation over and over
     ctx.clearRect(0, 0, canvas.width, canvas.height);//draws only current cell being hovered on
@@ -115,6 +126,7 @@ function animate() { //recursion to redraw the animation over and over
     ctx.fillRect(0, 0,constrolsBar.width, constrolsBar.height);
     handleGameGrid();
     handleDefenders();
+    handleGameStatus();
     requestAnimationFrame(animate);
 }
 
