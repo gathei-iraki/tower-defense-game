@@ -12,7 +12,7 @@ let frame = 0;
 let gameOver = false;
 let score = 0;
 const winningScore = 50;
-
+let chooseDefender = 1;
 const gameGrid = [];
 const defenders = [];
 const enemies = [];
@@ -130,6 +130,10 @@ for (let j =0; j < enemies.length; j++){
 
 
 //defenders
+const defender1 = new Image();
+defender1.src = 'defender1.png';
+const defender2 = new Image();
+defender2.src = 'defender2.png';
 class Defender{
     constructor(x, y){
         this.x = x;
@@ -137,9 +141,16 @@ class Defender{
         this.width = cellSize - cellGap * 2;
         this.height = cellSize - cellGap * 2;
         this.shooting = false;//shoot only when enemy is detected on row
+        this.shootNow = false
         this.health = 100;
         this.projectiles = [];
         this.timer = 0;
+        this.frameX = 0; //to cycle through the frames of the spritesheet
+        this.frameY = 0;
+        this.spriteWidth = 194;
+        this.spriteHeight = 194;
+        this.minFrame = 0;
+        this.maxFrame = 16;
     }
     draw(){
         ctx.fillStyle = 'blue';
@@ -147,19 +158,29 @@ class Defender{
         ctx.fillStyle = 'gold';
         ctx.font = '20px Orbitron';
         ctx.fillText(Math.floor(this.health), this.x + 15, this.y + 30);//to give health in whole numbers
-
+        ctx.drawImage(defender1, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height);
 
     }
     update(){
-        if (this.shooting){
-            this.timer++;
-            if (this.timer % 100 === 0){
-                projectiles.push(new Projectile(this.x + 70, this.y + 50)); //to ensure lasers originate from the defender who fires them
-    
-            }
-        }else {
-            this.timer = 0;
+        if (frame % 8 === 0){//making the defender shoot faster
+            if (this.frameX < this.maxFrame) this.frameX++;
+            else this.frameX = this.minFrame;
+            if (this.frameX === 15) this.shootNow = true;// syncs frame 15 of animation with the bullets
         }
+        if (this.shooting){// switches frame to idle when no enemy is detected on row
+           this.minFrame = 0;
+           this.maxFrame = 15; 
+        } else{
+            this.minFrame = 17;
+            this.maxFrame = 23;
+        }
+
+
+        if (this.shooting && this.shootNow){ //if defender detects enemy on row and farme is 15 then shoot
+                projectiles.push(new Projectile(this.x + 70, this.y + 35)); //to ensure lasers originate from the defender who fires them
+                this.shootNow = false;
+    
+            }       
        
     }
 }
@@ -195,6 +216,9 @@ function handleDefenders(){
         }
     }
 }
+
+
+
 //floating Messages
 const floatingMessages = [];
 class floatingMessage{
@@ -238,7 +262,7 @@ const enemy1 = new Image();
 enemy1.src = 'enemy1.png';
 enemyTypes.push(enemy1);
 const enemy2 = new Image();
-enemy2.src = 'enemy2.png';
+enemy2.src = 'enemy1.png';
 enemyTypes.push(enemy2);
 
 
@@ -270,8 +294,8 @@ class Enemy{
    
     }
     draw(){
-        ctx.fillStyle = 'red';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        //ctx.fillStyle = 'red';
+        //ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.fillStyle = 'black';
         ctx.font = '20px Orbitron';
         ctx.fillText(Math.floor(this.health), this.x + 15, this.y + 30);//to give health in whole numbers
@@ -357,8 +381,8 @@ function handleResources(){
 function handleGameStatus(){
     ctx.fillStyle = 'gold';
     ctx.font = '30px Orbitron';
-    ctx.fillText('Score: ' + score, 20, 40);
-    ctx.fillText('Resources: ' + numberOfResources, 20, 80);
+    ctx.fillText('Score: ' + score, 180, 40);
+    ctx.fillText('Resources: ' + numberOfResources, 180, 80);
     if (gameOver){
         ctx.fillStyle = 'black';
         ctx.font = '90px Orbitron';
