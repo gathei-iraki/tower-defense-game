@@ -163,24 +163,7 @@ class Defender{
        
     }
 }
-//creating new defender on canvas after clicking
-canvas.addEventListener('click', function(){
-const gridPositonX = mouse.x - (mouse.x % cellSize) + cellGap;
-const gridPositonY = mouse.y - (mouse.y % cellSize) + cellGap;
-if (gridPositonY < cellSize) return;//to ensure you cant add a defender on the top blue spot
-//to avoid placing a defender on top of another
-for (let i = 0; i < defenders.length; i++){
-    if (defenders[i].x === gridPositonX && defenders[i].y === gridPositonY)
-        return;
-}
-let defenderCost = 100;
-if (numberOfResources >= defenderCost){
-    defenders.push(new Defender(gridPositonX, gridPositonY));
-    numberOfResources -= defenderCost;
-}
 
-
-}) ;
 function handleDefenders(){
     for (let i = 0; i < defenders.length; i++){
         defenders[i].draw();
@@ -212,6 +195,43 @@ function handleDefenders(){
         }
     }
 }
+//floating Messages
+const floatingMessages = [];
+class floatingMessage{
+    constructor(value, x, y, size, color){
+this.value = value;
+this.x = x;
+this.y = y;
+this.size = size;
+this.lifeSpan = 0;
+this.color = color;
+this.opacity = 1;
+
+    }
+    update(){
+        this.y -= 0.3;
+        this.lifeSpan += 1;
+        if (this.opacity > 0.01) this.opacity -= 0.01;
+    }
+    draw(){ //displays floating messges as text on the canvas
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = this.color;
+        ctx.font = this.size + 'px Orbitron';
+        ctx.fillText(this.value, this.x, this.y);
+        ctx.globalAlpha = 1;
+    }
+}
+function handleFloatingMessages(){
+    for (let i = 0; i < floatingMessages.length; i++){
+       floatingMessages[i].update();
+       floatingMessages[i].draw();
+       if (floatingMessages[i].lifeSpan >= 50){
+floatingMessages.splice(i, 1);
+i--;
+       } 
+    }
+}
+
 //enemies
 class Enemy{
     constructor(verticalPosition){
@@ -323,6 +343,27 @@ function handleGameStatus(){
     }
 }
 
+//creating new defender on canvas after clicking
+canvas.addEventListener('click', function(){
+    const gridPositonX = mouse.x - (mouse.x % cellSize) + cellGap;
+    const gridPositonY = mouse.y - (mouse.y % cellSize) + cellGap;
+    if (gridPositonY < cellSize) return;//to ensure you cant add a defender on the top blue spot
+    //to avoid placing a defender on top of another
+    for (let i = 0; i < defenders.length; i++){
+        if (defenders[i].x === gridPositonX && defenders[i].y === gridPositonY)
+            return;
+    }
+    let defenderCost = 100;
+    if (numberOfResources >= defenderCost){
+        defenders.push(new Defender(gridPositonX, gridPositonY));
+        numberOfResources -= defenderCost;
+    } else {
+        floatingMessages.push(new floatingMessage('Need more resources', mouse.x, mouse.y, 15, 'blue'));
+    }
+    
+    
+    }) ;
+
 
 function animate() { //recursion to redraw the animation over and over
     ctx.clearRect(0, 0, canvas.width, canvas.height);//draws only current cell being hovered on
@@ -334,6 +375,7 @@ function animate() { //recursion to redraw the animation over and over
     handleProjectiles();
     handleEnemies();
     handleGameStatus();
+    handleFloatingMessages();
 frame++;
    if(!gameOver) requestAnimationFrame(animate);
 }
