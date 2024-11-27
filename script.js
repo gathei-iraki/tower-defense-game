@@ -211,7 +211,7 @@ this.opacity = 1;
     update(){
         this.y -= 0.3;
         this.lifeSpan += 1;
-        if (this.opacity > 0.01) this.opacity -= 0.01;
+        if (this.opacity > 0.03) this.opacity -= 0.03;
     }
     draw(){ //displays floating messges as text on the canvas
         ctx.globalAlpha = this.opacity;
@@ -233,6 +233,16 @@ i--;
 }
 
 //enemies
+const enemyTypes = [];
+const enemy1 = new Image();
+enemy1.src = 'enemy1.png';
+enemyTypes.push(enemy1);
+const enemy2 = new Image();
+enemy2.src = 'enemy2.png';
+enemyTypes.push(enemy2);
+
+
+
 class Enemy{
     constructor(verticalPosition){
       this.x = canvas.width;
@@ -243,11 +253,21 @@ class Enemy{
         this.movement = this.speed;
         this.health = 100;
         this.maxHealth = this.health;
-
-
+        this.enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)]; //randomly give enemy1 or 2 animations
+        this.frameX = 0; //to cycle through the frames of the spritesheet
+        this.frameY = 0;
+        this.minFrame = 0;
+        this.maxFrame = 4;
+        this.spriteWidth = 256;
+        this.spriteHeight = 256;
     }
     update(){
     this.x -= this.movement;
+    if (frame % 10 === 0){ //adjusting the speed of the enemy animation
+        if (this.frameX < this.maxFrame) this.frameX++;
+        else this.frameX = this.minFrame;
+    }
+   
     }
     draw(){
         ctx.fillStyle = 'red';
@@ -255,6 +275,11 @@ class Enemy{
         ctx.fillStyle = 'black';
         ctx.font = '20px Orbitron';
         ctx.fillText(Math.floor(this.health), this.x + 15, this.y + 30);//to give health in whole numbers
+
+        //drawing the spritesheet
+        //ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+        ctx.drawImage(this.enemyType, this.frameX * this.spriteWidth, 0, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height);
+
     }
 }
 
@@ -271,6 +296,9 @@ for (let i = 0; i < enemies.length; i++){
     //remove enemy once health reaches 0
     if (enemies[i].health <= 0){
         let gainedResources = enemies[i].maxHealth/10;
+        floatingMessages.push(new floatingMessage('+' + gainedResources, enemies[i].x, enemies[i].y, 30, 'black'));
+        floatingMessages.push(new floatingMessage('+' + gainedResources, 250, 50, 30, 'gold'));
+
         numberOfResources += gainedResources;
         score += gainedResources;
         const findThisIndex = enemyPositions.indexOf(enemies[i].y);
@@ -317,6 +345,9 @@ function handleResources(){
     resources[i].draw();
     if (resources[i] && mouse.x && mouse.y && collision(resources[i],mouse)){
         numberOfResources += resources[i].amount;
+        floatingMessages.push(new floatingMessage('+' + resources[i].amount, resources[i].x, resources[i].y, 30, 'black'));
+        floatingMessages.push(new floatingMessage('+' + resources[i].amount, 250, 50, 30, 'gold'));
+
         resources.splice(i, 1);
         i--;
     }
@@ -358,7 +389,7 @@ canvas.addEventListener('click', function(){
         defenders.push(new Defender(gridPositonX, gridPositonY));
         numberOfResources -= defenderCost;
     } else {
-        floatingMessages.push(new floatingMessage('Need more resources', mouse.x, mouse.y, 15, 'blue'));
+        floatingMessages.push(new floatingMessage('Need more resources', mouse.x, mouse.y, 20, 'blue'));
     }
     
     
